@@ -2,19 +2,39 @@
 #include "pico/stdlib.h"
 
 // GPIO do LED RGB
-#define RGB_RED 13
 #define RGB_GREEN 11
 #define RGB_BLUE 12
+#define RGB_RED 13
 
 // Definindo a máscara para ativar a GPIO
 #define OUTPUT_MASK ((1 << RGB_BLUE) | (1 << RGB_GREEN) | (1 << RGB_RED))
 
 uint16_t atraso = 3000; // Atraso em ms
+int contador = 1; // Contador para definir qual led vai ser ativado
 
 // Função que é chamada na interrupção do temproizador
 bool repeating_timer_callback(struct repeating_timer *t){
-    // Inicialmente só blinka um led para testar interrupção
-    gpio_put(RGB_GREEN, !gpio_get(RGB_GREEN));
+    // Condicional para o contador voltar ao valor inicial quando estourar
+    if(contador>3){
+        contador = 1;
+    }
+
+    switch(contador){
+        case 1:
+            gpio_put_masked(OUTPUT_MASK, 0); // Desativando todos os leds
+            gpio_put(RGB_GREEN, 1); // Ativando o primeiro led do semáforo (Vermelho)
+            break;
+        case 2:
+            gpio_put_masked(OUTPUT_MASK, 0); // Desativando todos os leds
+            gpio_put(RGB_BLUE, 1);  // Ativando o segundo led do semáforo (Amarelo)
+            break;
+        case 3:
+            gpio_put_masked(OUTPUT_MASK, 0); // Desativando todos os leds
+            gpio_put(RGB_RED, 1);  // Ativando o terceiro led do semáforo (Verde)          
+            break;
+    }
+
+    contador++; // Incrementa o contador
     return true; // Retorna true para repetir a interrupção
 }
 
